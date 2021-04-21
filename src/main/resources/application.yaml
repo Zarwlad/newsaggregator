@@ -8,3 +8,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 128MB
+  datasource:
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url: ${DB_URL}

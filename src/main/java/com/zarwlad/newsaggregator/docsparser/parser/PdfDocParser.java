@@ -3,60 +3,52 @@ package com.zarwlad.newsaggregator.docsparser.parser;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 import com.itextpdf.text.pdf.parser.SimpleTextExtractionStrategy;
-import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.fit.pdfdom.PDFDomTree;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.regex.Pattern;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.util.Random;
 
 @Component
 @Slf4j
 public class PdfDocParser {
-    @SneakyThrows
-    public void generateTextFromPdf(MultipartFile file){
-        byte[] bytes = readBytesFromFile(file);
-        PDDocument pdDocument = PDDocument.load(bytes);
-        Writer output = new PrintWriter("D:\\Download\\newPdf.html", StandardCharsets.UTF_8);
-        new PDFDomTree().writeText(pdDocument, output);
 
-        output.close();
-    }
-
-    public String parseChangeLog(MultipartFile file, String stopPhrase){
-        PdfReader pdfReader = getPdfReaderInstance(readBytesFromFile(file));
-
+    /***
+     *  A main method parser. Ignores "содержание". Read pdf page by page.
+     * @param pdfReader - instance of PdfReader. Pdf reader is connected to data source.
+     * @param startPhrase - start phrase, from which parsing starts.
+     * @param stopPhrase - the phrase, which stops parsing data. Most common phrase - a title of next paragraph
+     * @return pure parsed text
+     */
+    private String parsePdfPerPage(PdfReader pdfReader, String startPhrase, String stopPhrase){
         StringBuilder str = new StringBuilder();
 
-        boolean changeLogStart = false;
+        boolean parseStart = false;
         try {
             for (int i = 1; i < pdfReader.getNumberOfPages(); i++) {
                 String pageData = getTextFromPage(pdfReader, i);
-                log.debug("Successfully read text from file {}, page {}. Content: {}", file.getName(), i, pageData);
+                log.debug("Successfully read text from file, page {}. Content: {}", i, pageData);
 
                 String purifiedContent = pageData.toLowerCase().strip();
-                if (!changeLogStart
-                        && purifiedContent.contains("история изменений")
+                if (!parseStart
+                        && purifiedContent.contains(startPhrase)
                         && !purifiedContent.contains("содержание")){
-                    changeLogStart = true;
+                    parseStart = true;
                 }
 
                 if (purifiedContent.contains(stopPhrase.toLowerCase().strip())
-                && !purifiedContent.contains("содержание"))
+                        && !purifiedContent.contains("содержание"))
                     break;
 
-                if (changeLogStart){
+                if (parseStart){
                     str.append(pageData);
                 }
             }
@@ -70,7 +62,7 @@ public class PdfDocParser {
         try {
             return PdfTextExtractor.getTextFromPage(pdfReader, page, new SimpleTextExtractionStrategy());
         } catch (IOException e) {
-            log.error("Попытка чтения текста не удалась. Обращение к несуществуещей странице? Страница: {}, Exception: {}", page, e.getMessage());
+            log.error("Usuccessfull attempt to read text. Calling non-existing page? Page: {}, Exception: {}", page, e.getMessage());
             return "";
         }
 
@@ -85,6 +77,22 @@ public class PdfDocParser {
         }
     }
 
+    private byte[] readBytesFromFile(URL url){
+        try (InputStream in = url.openStream()){
+            Path tempFile = Files.createTempFile(
+                    "temp",
+                    ".tmp");
+            Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            byte[] bytes = Files.readAllBytes(tempFile);
+
+            tempFile.toFile().delete();
+            return bytes;
+        } catch (IOException e) {
+            log.error(e.toString());
+            return new byte[0];
+        }
+    }
+
     private PdfReader getPdfReaderInstance(byte[] bytes){
         try {
             return new PdfReader(bytes);
@@ -93,4 +101,15 @@ public class PdfDocParser {
             return null;
         }
     }
+
+    public String parseChangeLog(MultipartFile file, String stopPhrase){
+        PdfReader pdfReader = getPdfReaderInstance(readBytesFromFile(file));
+        return parsePdfPerPage(pdfReader, "история изменений", stopPhrase);
+    }
+
+    public String parseChangeLog(URL file, String stopPhrase){
+        PdfReader pdfReader = getPdfReaderInstance(readBytesFromFile(file));
+        return parsePdfPerPage(pdfReader, "история изменений", stopPhrase);
+    }
+
 }
