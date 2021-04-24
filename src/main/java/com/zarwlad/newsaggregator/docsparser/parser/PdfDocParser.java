@@ -8,14 +8,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
-import java.util.Random;
 
 @Component
 @Slf4j
@@ -28,7 +24,7 @@ public class PdfDocParser {
      * @param stopPhrase - the phrase, which stops parsing data. Most common phrase - a title of next paragraph
      * @return pure parsed text
      */
-    private String parsePdfPerPage(PdfReader pdfReader, String startPhrase, String stopPhrase){
+    public String parsePdfPerPage(PdfReader pdfReader, String startPhrase, String stopPhrase){
         StringBuilder str = new StringBuilder();
 
         boolean parseStart = false;
@@ -58,7 +54,7 @@ public class PdfDocParser {
         return str.toString();
     }
 
-    private String getTextFromPage(PdfReader pdfReader, int page){
+    public String getTextFromPage(PdfReader pdfReader, int page){
         try {
             return PdfTextExtractor.getTextFromPage(pdfReader, page, new SimpleTextExtractionStrategy());
         } catch (IOException e) {
@@ -68,7 +64,7 @@ public class PdfDocParser {
 
     }
 
-    private byte[] readBytesFromFile(MultipartFile file){
+    public byte[] readBytesFromFile(MultipartFile file){
         try {
             return file.getBytes();
         } catch (IOException e) {
@@ -77,7 +73,7 @@ public class PdfDocParser {
         }
     }
 
-    private byte[] readBytesFromFile(URL url){
+    public byte[] readBytesFromFile(URL url){
         try (InputStream in = url.openStream()){
             Path tempFile = Files.createTempFile(
                     "temp",
@@ -93,7 +89,7 @@ public class PdfDocParser {
         }
     }
 
-    private PdfReader getPdfReaderInstance(byte[] bytes){
+    public PdfReader getPdfReaderInstance(byte[] bytes){
         try {
             return new PdfReader(bytes);
         } catch (IOException e) {

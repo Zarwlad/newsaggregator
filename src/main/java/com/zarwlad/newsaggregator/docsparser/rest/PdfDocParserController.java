@@ -1,6 +1,8 @@
 package com.zarwlad.newsaggregator.docsparser.rest;
 
+import com.zarwlad.newsaggregator.docsparser.facade.PdfParserFacade;
 import com.zarwlad.newsaggregator.docsparser.model.FileFromUrlRequestDto;
+import com.zarwlad.newsaggregator.docsparser.model.ParseIterationDto;
 import com.zarwlad.newsaggregator.docsparser.model.RawStringResponseDto;
 import com.zarwlad.newsaggregator.docsparser.parser.PdfDocParser;
 import lombok.RequiredArgsConstructor;
@@ -11,20 +13,20 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 
-@RestController("/docs-parser")
+@RestController("/parser")
 @RequiredArgsConstructor
 @Slf4j
 public class PdfDocParserController {
     private final PdfDocParser pdfDocParser;
+    private final PdfParserFacade pdfParserFacade;
 
     @PostMapping(value = "/parse-to-text-from-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public RawStringResponseDto parseToText(@RequestParam("file") MultipartFile file, @NotNull String stopPhrase) {
         return new RawStringResponseDto(pdfDocParser.parseChangeLog(file, stopPhrase));
     }
 
-    @PostMapping(value = "/parse-to-text-from-link", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public RawStringResponseDto parseToTextFromUrl(@RequestBody FileFromUrlRequestDto fileFromUrlRequestDto){
-        log.info(fileFromUrlRequestDto.toString());
-        return new RawStringResponseDto(pdfDocParser.parseChangeLog(fileFromUrlRequestDto.getUrl(), fileFromUrlRequestDto.getStopPhrase()));
+    @PostMapping(value = "/from-link")
+    public ParseIterationDto parseToTextFromUrl(@RequestBody FileFromUrlRequestDto fileFromUrlRequestDto){
+        return pdfParserFacade.save(fileFromUrlRequestDto);
     }
 }

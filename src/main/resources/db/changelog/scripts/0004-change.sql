@@ -1,0 +1,1 @@
+ALTER TABLE parse_iteration ADD COLUMN created_at timestamptz;

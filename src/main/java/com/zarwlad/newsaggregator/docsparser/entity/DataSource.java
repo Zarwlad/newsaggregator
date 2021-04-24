@@ -26,12 +26,13 @@ public class DataSource {
     @NotNull
     private Integer pageCount;
 
-    private String version;
-
     private URL originalPath;
 
     private String filename;
 
     @NotNull
     private byte[] source;
+
+    @NotNull
+    private Long length;
 }

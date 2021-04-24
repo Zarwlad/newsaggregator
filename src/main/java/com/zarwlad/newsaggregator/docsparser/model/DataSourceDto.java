@@ -27,4 +27,7 @@ public class DataSourceDto {
 
     @NotNull
     private byte[] source;
+
+    @NotNull
+    private Long length;
 }
