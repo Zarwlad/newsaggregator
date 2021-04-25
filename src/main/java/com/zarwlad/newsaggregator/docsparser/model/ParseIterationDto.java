@@ -24,6 +24,5 @@ public class ParseIterationDto {
 
     private String stopPhrase;
 
-    @JsonIgnore
-    private DataSource dataSource;
+    private UUID dataSourceId;
 }

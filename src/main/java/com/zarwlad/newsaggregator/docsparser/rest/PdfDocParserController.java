@@ -1,6 +1,6 @@
 package com.zarwlad.newsaggregator.docsparser.rest;
 
-import com.zarwlad.newsaggregator.docsparser.facade.PdfParserFacade;
+import com.zarwlad.newsaggregator.docsparser.service.PdfParserService;
 import com.zarwlad.newsaggregator.docsparser.model.FileFromUrlRequestDto;
 import com.zarwlad.newsaggregator.docsparser.model.ParseIterationDto;
 import com.zarwlad.newsaggregator.docsparser.model.RawStringResponseDto;
@@ -18,7 +18,7 @@ import javax.validation.constraints.NotNull;
 @Slf4j
 public class PdfDocParserController {
     private final PdfDocParser pdfDocParser;
-    private final PdfParserFacade pdfParserFacade;
+    private final PdfParserService pdfParserService;
 
     @PostMapping(value = "/parse-to-text-from-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public RawStringResponseDto parseToText(@RequestParam("file") MultipartFile file, @NotNull String stopPhrase) {
@@ -27,6 +27,6 @@ public class PdfDocParserController {
 
     @PostMapping(value = "/from-link")
     public ParseIterationDto parseToTextFromUrl(@RequestBody FileFromUrlRequestDto fileFromUrlRequestDto){
-        return pdfParserFacade.save(fileFromUrlRequestDto);
+        return pdfParserService.save(fileFromUrlRequestDto);
     }
 }

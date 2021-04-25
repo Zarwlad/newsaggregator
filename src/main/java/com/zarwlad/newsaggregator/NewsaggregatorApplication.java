@@ -1,11 +1,11 @@
 package com.zarwlad.newsaggregator;
 
-import com.zarwlad.newsaggregator.tgclient.Receiver;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.jms.annotation.EnableJms;
 
 @SpringBootApplication
+@EnableJms
 public class NewsaggregatorApplication {
 
     public static void main(String[] args) {
